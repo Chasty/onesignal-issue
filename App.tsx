@@ -5,114 +5,99 @@
  * @format
  */
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {SafeAreaView, Text, TouchableOpacity, View} from 'react-native';
+import {LogLevel, OneSignal} from 'react-native-onesignal';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+OneSignal.initialize('d12f0c00-513a-46a5-9d4c-234f228dd79f');
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+// Remove this method to stop OneSignal Debugging
+OneSignal.Debug.setLogLevel(LogLevel.Verbose);
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+const Check = ({enabled, onPress}: {enabled: boolean; onPress: () => void}) => {
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
+    <TouchableOpacity
+      style={{
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        borderColor: 'grey',
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+      onPress={onPress}>
+      <View
+        style={{
+          width: 50,
+          height: 50,
+          borderRadius: 25,
+          backgroundColor: enabled ? 'green' : 'transparent',
+        }}></View>
+    </TouchableOpacity>
   );
-}
+};
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const [isEnabled, setIsEnabled] = useState(false);
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  useEffect(() => {
+    // requestPermission will show the native iOS or Android notification permission prompt.
+    // We recommend removing the following code and instead using an In-App Message to prompt for notification permission
+    OneSignal.Notifications.requestPermission(true);
+
+    // Method for listening for notification clicks
+    OneSignal.Notifications.addEventListener('click', event => {
+      console.log('OneSignal: notification clicked:', event);
+    });
+  }, []);
+
+  useEffect(() => {
+    setTimeout(async () => {
+      const hasPermission = await OneSignal.Notifications.getPermissionAsync();
+      setIsEnabled(hasPermission);
+    }, 1000);
+  }, []);
+
+  useEffect(() => {
+    const permissionChangedHandler = async (hasPermission: boolean) => {
+      console.debug(
+        'PermissionsStore.permissionChangedHandler hasPermission?',
+        hasPermission,
+      );
+
+      if (hasPermission) {
+        OneSignal.User.pushSubscription.optIn();
+      }
+      setIsEnabled(hasPermission);
+    };
+    OneSignal.Notifications.addEventListener(
+      'permissionChange',
+      permissionChangedHandler,
+    );
+  }, []);
+
+  const onToggle = async () => {
+    const hasPermission = await OneSignal.Notifications.getPermissionAsync();
+
+    if (!hasPermission) {
+      OneSignal.Notifications.requestPermission(true);
+      return;
+    }
+
+    setIsEnabled(hasPermission);
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
+    <SafeAreaView style={{flex: 1, margin: 64}}>
+      <View style={{flexDirection: 'row', alignItems: 'center', gap: 16}}>
+        <Check enabled={isEnabled} onPress={onToggle} />
+        <Text style={{fontSize: 18}}>
+          Permission {isEnabled ? 'Enabled' : 'Disabled'}
+        </Text>
+      </View>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
 
 export default App;

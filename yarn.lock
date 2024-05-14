@@ -3013,6 +3013,7 @@ __metadata:
     prettier: 2.8.8
     react: 18.2.0
     react-native: 0.74.1
+    react-native-onesignal: ^5.1.3
     react-test-renderer: 18.2.0
     typescript: 5.0.4
   languageName: unknown
@@ -5493,7 +5494,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"invariant@npm:^2.2.4":
+"invariant@npm:^2.2.2, invariant@npm:^2.2.4":
   version: 2.2.4
   resolution: "invariant@npm:2.2.4"
   dependencies:
@@ -7947,6 +7948,15 @@ __metadata:
   version: 17.0.2
   resolution: "react-is@npm:17.0.2"
   checksum: 9d6d111d8990dc98bc5402c1266a808b0459b5d54830bbea24c12d908b536df7883f268a7868cfaedde3dd9d4e0d574db456f84d2e6df9c4526f99bb4b5344d8
+  languageName: node
+  linkType: hard
+
+"react-native-onesignal@npm:^5.1.3":
+  version: 5.1.3
+  resolution: "react-native-onesignal@npm:5.1.3"
+  dependencies:
+    invariant: ^2.2.2
+  checksum: 641a49a2405716e8793362c7ed5b875389995fa9f83f9ca93a1084a244aac9e6e14d0567b643e723bc90d6113d7b18f4936053f1cd1a1a6813b9a46545730f9f
   languageName: node
   linkType: hard
 
